@@ -53,37 +53,41 @@ export function Layout() {
             )}
           </nav>
 
-          <div className="ml-auto hidden items-center gap-1 md:flex">
+          <div className="ml-auto hidden items-center gap-3 md:flex">
             <ThemeToggle />
+            <div className="h-4 w-px bg-line/80" />
             {usuario ? (
               <>
                 <NotificationBell />
                 <Link
                   to="/perfil"
-                  className="ml-1 flex h-8 w-8 items-center justify-center rounded-full bg-surface-2 font-display text-sm font-semibold text-primary hover:ring-2 hover:ring-primary/20"
+                  className="flex h-9 w-9 items-center justify-center rounded-full bg-surface-2 font-display text-sm font-semibold text-primary shadow-xs hover:ring-2 hover:ring-primary/20 transition-all"
                   title={usuario.nombre_completo}
                 >
                   {usuario.nombre_completo.charAt(0)}
                 </Link>
                 <button
                   onClick={logout}
-                  className="ml-1 rounded-lg px-3 py-1.5 text-sm font-medium text-muted hover:bg-surface-2 hover:text-ink"
+                  className="rounded-xl px-3 py-1.5 text-sm font-medium text-muted hover:bg-surface-2 hover:text-ink transition-colors"
                 >
                   Salir
                 </button>
               </>
             ) : (
-              <>
-                <Link to="/login" className="text-sm font-medium text-ink">
+              <div className="flex items-center gap-2">
+                <Link
+                  to="/login"
+                  className="rounded-xl px-3.5 py-1.5 text-sm font-semibold text-ink hover:bg-surface-2 transition-colors"
+                >
                   Ingresar
                 </Link>
                 <Link
                   to="/registro"
-                  className="rounded-lg bg-accent px-3.5 py-1.5 text-sm font-semibold text-accent-ink hover:brightness-105"
+                  className="rounded-xl bg-accent px-4 py-1.5 text-sm font-bold text-accent-ink shadow-xs hover:brightness-105 transition-all"
                 >
                   Registrarme
                 </Link>
-              </>
+              </div>
             )}
           </div>
 
