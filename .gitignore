@@ -1,0 +1,40 @@
+# --- Python / Django ---
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+backend/media/
+backend/staticfiles/
+*.sqlite3
+.ruff_cache/
+.pytest_cache/
+.coverage
+backend/coverage.xml
+
+# --- Node / React ---
+node_modules/
+frontend/dist/
+frontend/.vite/
+frontend/*.tsbuildinfo
+
+# --- Env / secrets ---
+.env
+.env.*
+!.env.example
+!.env.prod.example
+
+# --- Editors / OS ---
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# --- SonarQube ---
+.scannerwork/
+
+# --- Docker ---
+*.pid
+
+# --- Herramientas locales del asistente (config de máquina, no del proyecto) ---
+.claude/
