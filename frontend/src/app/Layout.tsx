@@ -4,10 +4,11 @@ import { useAuth } from "@/shared/auth/AuthContext";
 import { NotificationBell } from "@/features/notifications/NotificationBell";
 import { IconClose, IconMenu } from "@/shared/ui/icons";
 import { ThemeToggle } from "@/shared/ui/ThemeToggle";
+import { LogoAgroMarket } from "@/shared/ui/LogoAgroMarket";
 
 const enlace = ({ isActive }: { isActive: boolean }) =>
   `rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
-    isActive ? "bg-surface-2 text-ink" : "text-muted hover:text-ink"
+    isActive ? "bg-surface-2 text-ink shadow-xs" : "text-muted hover:text-ink hover:bg-surface-2/60"
   }`;
 
 const enlaceMovil = ({ isActive }: { isActive: boolean }) =>
@@ -21,11 +22,15 @@ export function Layout() {
   useEffect(() => setMenuAbierto(false), [location.pathname]);
 
   return (
-    <div className="flex min-h-screen flex-col bg-bg">
-      <header className="sticky top-0 z-10 border-b border-line bg-surface/90 backdrop-blur">
+    <div className="flex min-h-screen flex-col bg-bg selection:bg-accent/20">
+      <header className="sticky top-0 z-30 border-b border-line/80 bg-surface/85 backdrop-blur-md transition-colors">
         <div className="mx-auto flex max-w-6xl items-center gap-5 px-4 py-3 sm:px-6">
-          <Link to="/" className="flex items-center gap-1.5 font-display text-lg font-semibold text-primary">
-            🌾 AgroMarket
+          <Link to="/" className="group flex items-center gap-2.5 font-display text-lg font-bold text-primary">
+            <LogoAgroMarket className="h-9 w-9 transition-transform duration-300 group-hover:scale-110" />
+            <div className="flex flex-col leading-none">
+              <span className="font-display text-lg tracking-tight text-ink">Agro<span className="text-primary">Market</span></span>
+              <span className="text-[10px] font-sans font-medium uppercase tracking-wider text-accent">Verificado</span>
+            </div>
           </Link>
           <nav className="hidden flex-1 items-center gap-1 md:flex">
             <NavLink to="/" end className={enlace}>
@@ -137,16 +142,49 @@ export function Layout() {
         <Outlet />
       </main>
 
-      <footer className="border-t border-line">
-        <div className="mx-auto flex max-w-6xl flex-col items-center gap-2 px-4 py-6 text-xs text-muted sm:flex-row sm:justify-between sm:px-6">
-          <p>© 2026 AgroMarket — proyecto académico, Politécnico Grancolombiano.</p>
-          <div className="flex gap-4">
-            <Link to="/terminos" className="hover:text-ink">
-              Términos y condiciones
-            </Link>
-            <Link to="/privacidad" className="hover:text-ink">
-              Privacidad
-            </Link>
+      <footer className="mt-16 border-t border-line/80 bg-surface/50 backdrop-blur-xs">
+        <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
+          <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
+            <div className="space-y-3 md:col-span-2">
+              <div className="flex items-center gap-2.5">
+                <LogoAgroMarket className="h-8 w-8" />
+                <span className="font-display text-lg font-bold text-ink">Agro<span className="text-primary">Market</span></span>
+              </div>
+              <p className="max-w-sm text-sm text-muted">
+                Marketplace digital especializado para el sector agropecuario y ganadero. Conectamos productores, criadores y proveedores con verificación de identidad y trazabilidad sanitaria obligatoria.
+              </p>
+              <div className="flex items-center gap-3 pt-2 text-xs text-muted">
+                <span className="inline-flex items-center gap-1 rounded-full bg-success/10 px-2.5 py-1 text-success font-medium">
+                  ✓ Verificación con Cédula
+                </span>
+                <span className="inline-flex items-center gap-1 rounded-full bg-accent/10 px-2.5 py-1 text-accent font-medium">
+                  ✓ Sin Intermediarios
+                </span>
+              </div>
+            </div>
+
+            <div>
+              <h4 className="font-display text-sm font-semibold uppercase tracking-wider text-ink">Categorías</h4>
+              <ul className="mt-3 space-y-2 text-sm text-muted">
+                <li><Link to="/?categoria=insumo_veterinario" className="hover:text-primary transition-colors">Insumos Veterinarios</Link></li>
+                <li><Link to="/?categoria=alimento_balanceado" className="hover:text-primary transition-colors">Alimentos y Suplementos</Link></li>
+                <li><Link to="/?categoria=animal_genetica" className="hover:text-primary transition-colors">Animales y Genética</Link></li>
+              </ul>
+            </div>
+
+            <div>
+              <h4 className="font-display text-sm font-semibold uppercase tracking-wider text-ink">Proyecto</h4>
+              <ul className="mt-3 space-y-2 text-sm text-muted">
+                <li><Link to="/terminos" className="hover:text-primary transition-colors">Términos del Servicio</Link></li>
+                <li><Link to="/privacidad" className="hover:text-primary transition-colors">Política de Privacidad</Link></li>
+                <li><a href="https://agro.esacsalud.com/api/docs/" target="_blank" rel="noreferrer" className="hover:text-primary transition-colors">API & Swagger</a></li>
+              </ul>
+            </div>
+          </div>
+
+          <div className="mt-10 border-t border-line/60 pt-6 flex flex-col items-center justify-between gap-3 text-xs text-muted sm:flex-row">
+            <p>© 2026 AgroMarket — Proyecto de Emprendimiento de Base Tecnológica. Politécnico Grancolombiano.</p>
+            <p className="text-[11px] text-muted/80">Facultad de Ingeniería, Diseño e Innovación</p>
           </div>
         </div>
       </footer>

@@ -113,27 +113,34 @@ export function PublicationDetailPage() {
             </Link>
 
             {publicacion.vendedor.estado_verificacion === "aprobado" && (
-              <div className="mb-4 flex items-center gap-1.5 text-xs font-medium text-success">
-                <IconShieldCheck className="h-4 w-4" /> Identidad verificada
+              <div className="mb-4 flex items-center gap-2 rounded-xl bg-success-bg/60 p-2.5 text-xs font-semibold text-success">
+                <IconShieldCheck className="h-5 w-5 shrink-0 text-success" />
+                <div>
+                  <p className="leading-tight">Vendedor con Identidad Verificada</p>
+                  <p className="text-[10px] font-normal text-muted">Cédula validada por el administrador</p>
+                </div>
               </div>
             )}
 
             {esDueno ? (
-              <p className="rounded-lg bg-surface-2 px-3 py-2.5 text-center text-xs text-muted">
+              <p className="rounded-xl bg-surface-2 px-3 py-2.5 text-center text-xs font-medium text-muted">
                 Esta es tu publicación
               </p>
             ) : usuario ? (
-              <Button onClick={contactar} disabled={iniciarConversacion.isPending} className="w-full">
-                {iniciarConversacion.isPending ? "Abriendo chat..." : "Contactar vendedor"}
+              <Button onClick={contactar} disabled={iniciarConversacion.isPending} className="w-full py-2.5 font-bold shadow-soft">
+                {iniciarConversacion.isPending ? "Abriendo chat seguro..." : "💬 Iniciar conversación segura"}
               </Button>
             ) : (
               <Link
                 to="/login"
-                className="block w-full rounded-lg bg-primary px-4 py-2 text-center text-sm font-semibold text-primary-ink"
+                className="block w-full rounded-xl bg-primary px-4 py-2.5 text-center text-sm font-bold text-primary-ink shadow-soft hover:brightness-105"
               >
                 Inicia sesión para contactar
               </Link>
             )}
+            <p className="mt-3 text-center text-[10px] text-muted">
+              🔒 Chat cifrado directo sin intermediarios ni compartir tu teléfono.
+            </p>
             {errorContacto && <p className="mt-2 text-xs text-danger">{errorContacto}</p>}
           </Card>
 
