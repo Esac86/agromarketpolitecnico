@@ -4,7 +4,6 @@ import { useAuth } from "@/shared/auth/AuthContext";
 import { NotificationBell } from "@/features/notifications/NotificationBell";
 import { IconClose, IconMenu } from "@/shared/ui/icons";
 import { ThemeToggle } from "@/shared/ui/ThemeToggle";
-import { LogoAgroMarket } from "@/shared/ui/LogoAgroMarket";
 
 const enlace = ({ isActive }: { isActive: boolean }) =>
   `rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
@@ -25,12 +24,8 @@ export function Layout() {
     <div className="flex min-h-screen flex-col bg-bg selection:bg-accent/20">
       <header className="sticky top-0 z-30 border-b border-line/80 bg-surface/85 backdrop-blur-md transition-colors">
         <div className="mx-auto flex max-w-6xl items-center gap-5 px-4 py-3 sm:px-6">
-          <Link to="/" className="group flex items-center gap-2.5 font-display text-lg font-bold text-primary">
-            <LogoAgroMarket className="h-9 w-9 transition-transform duration-300 group-hover:scale-110" />
-            <div className="flex flex-col leading-none">
-              <span className="font-display text-lg tracking-tight text-ink">Agro<span className="text-primary">Market</span></span>
-              <span className="text-[10px] font-sans font-medium uppercase tracking-wider text-accent">Verificado</span>
-            </div>
+          <Link to="/" className="flex items-center gap-1.5 font-display text-lg font-semibold text-primary">
+            🌾 AgroMarket
           </Link>
           <nav className="hidden flex-1 items-center gap-1 md:flex">
             <NavLink to="/" end className={enlace}>
@@ -150,9 +145,8 @@ export function Layout() {
         <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
           <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
             <div className="space-y-3 md:col-span-2">
-              <div className="flex items-center gap-2.5">
-                <LogoAgroMarket className="h-8 w-8" />
-                <span className="font-display text-lg font-bold text-ink">Agro<span className="text-primary">Market</span></span>
+              <div className="flex items-center gap-1.5 font-display text-lg font-bold text-primary">
+                🌾 AgroMarket
               </div>
               <p className="max-w-sm text-sm text-muted">
                 Marketplace digital especializado para el sector agropecuario y ganadero. Conectamos productores, criadores y proveedores con verificación de identidad y trazabilidad sanitaria obligatoria.
