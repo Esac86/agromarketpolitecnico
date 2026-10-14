@@ -1,34 +1,39 @@
+import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { CATEGORIA_ICONOS, IconLocation, IconClose } from "@/shared/ui/icons";
+import { CATEGORIA_ICONOS, IconChevronDown, IconClose, IconLocation } from "@/shared/ui/icons";
 import { usePublicaciones, type FiltrosCatalogo } from "./api";
 import { CATEGORIA_LABEL, formatearPrecio } from "./labels";
 import { PublicacionCard } from "./PublicacionCard";
 
 type Categoria = keyof typeof CATEGORIA_LABEL;
 
-// Departamentos agrícolas comunes de Colombia para autocompletar ubicación
-const DEPARTAMENTOS_COLOMBIA = [
-  "Antioquia",
-  "Arauca",
-  "Boyacá",
-  "Caldas",
-  "Caquetá",
-  "Casanare",
-  "Cauca",
-  "Cesar",
-  "Córdoba",
-  "Cundinamarca",
-  "Huila",
-  "Magdalena",
-  "Meta",
-  "Nariño",
-  "Norte de Santander",
-  "Quindío",
-  "Risaralda",
-  "Santander",
-  "Sucre",
-  "Tolima",
-  "Valle del Cauca",
+interface DepartamentoInfo {
+  nombre: string;
+  region: string;
+}
+
+// Departamentos agropecuarios de Colombia con información contextual
+const DEPARTAMENTOS_DETALLADOS: DepartamentoInfo[] = [
+  { nombre: "Casanare", region: "Llanos Orientales · Ganadería y arroz" },
+  { nombre: "Meta", region: "Llanos Orientales · Ganadería extensiva" },
+  { nombre: "Antioquia", region: "Región Andina · Lechería y porcicultura" },
+  { nombre: "Cundinamarca", region: "Sabana y Centro · Insumos y balanceados" },
+  { nombre: "Córdoba", region: "Costa Caribe · Cría y ceba de ganado" },
+  { nombre: "Santander", region: "Oriente · Avicultura y caprinos" },
+  { nombre: "Boyacá", region: "Altiplano · Alimento, papa y lácteos" },
+  { nombre: "Tolima", region: "Valle del Magdalena · Arroz y forrajes" },
+  { nombre: "Huila", region: "Sur Andino · Café y piscicultura" },
+  { nombre: "Valle del Cauca", region: "Suroccidente · Agroindustria y caña" },
+  { nombre: "Cesar", region: "Costa Caribe · Doble propósito" },
+  { nombre: "Caquetá", region: "Piedemonte Amazónico · Queso y carne" },
+  { nombre: "Arauca", region: "Llanos · Ganado de carne" },
+  { nombre: "Nariño", region: "Suroccidente · Lechería especializada" },
+  { nombre: "Caldas", region: "Eje Cafetero · Frutales y café" },
+  { nombre: "Risaralda", region: "Eje Cafetero · Avicultura e insumos" },
+  { nombre: "Quindío", region: "Eje Cafetero · Porcicultura y café" },
+  { nombre: "Norte de Santander", region: "Oriente · Bovinos e insumos" },
+  { nombre: "Magdalena", region: "Caribe · Ganadería y palma" },
+  { nombre: "Sucre", region: "Sabanas de Sucre · Ganadería cebuina" },
 ];
 
 // Presets rápidos de precio
@@ -47,6 +52,35 @@ export function CatalogPage() {
   const ubicacion = searchParams.get("ubicacion") || undefined;
   const precio_min = searchParams.get("precio_min") || undefined;
   const precio_max = searchParams.get("precio_max") || undefined;
+
+  // Estados locales para popovers personalizados (NO nativos)
+  const [ubicacionMenuAbierto, setUbicacionMenuAbierto] = useState(false);
+  const [precioMenuAbierto, setPrecioMenuAbierto] = useState(false);
+  const [tempMin, setTempMin] = useState(precio_min || "");
+  const [tempMax, setTempMax] = useState(precio_max || "");
+
+  const ubicacionRef = useRef<HTMLDivElement>(null);
+  const precioRef = useRef<HTMLDivElement>(null);
+
+  // Cerrar popovers al hacer clic afuera
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (ubicacionRef.current && !ubicacionRef.current.contains(event.target as Node)) {
+        setUbicacionMenuAbierto(false);
+      }
+      if (precioRef.current && !precioRef.current.contains(event.target as Node)) {
+        setPrecioMenuAbierto(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // Sincronizar inputs temporales de precio cuando cambia la URL
+  useEffect(() => {
+    setTempMin(precio_min || "");
+    setTempMax(precio_max || "");
+  }, [precio_min, precio_max]);
 
   const filtros: FiltrosCatalogo = {
     categoria,
@@ -75,7 +109,6 @@ export function CatalogPage() {
       const curMin = nuevo.get("precio_min") || "";
       const curMax = nuevo.get("precio_max") || "";
 
-      // Si ya está activo este preset, al hacer clic de nuevo se desactiva
       if (curMin === min && curMax === max) {
         nuevo.delete("precio_min");
         nuevo.delete("precio_max");
@@ -88,6 +121,32 @@ export function CatalogPage() {
       }
       return nuevo;
     });
+    setPrecioMenuAbierto(false);
+  }
+
+  function aplicarRangoPrecioManual() {
+    setSearchParams((prev) => {
+      const nuevo = new URLSearchParams(prev);
+      if (tempMin.trim()) nuevo.set("precio_min", tempMin.trim());
+      else nuevo.delete("precio_min");
+
+      if (tempMax.trim()) nuevo.set("precio_max", tempMax.trim());
+      else nuevo.delete("precio_max");
+      return nuevo;
+    });
+    setPrecioMenuAbierto(false);
+  }
+
+  function limpiarRangoPrecio() {
+    setTempMin("");
+    setTempMax("");
+    setSearchParams((prev) => {
+      const nuevo = new URLSearchParams(prev);
+      nuevo.delete("precio_min");
+      nuevo.delete("precio_max");
+      return nuevo;
+    });
+    setPrecioMenuAbierto(false);
   }
 
   function alternarCategoria(cat: Categoria) {
@@ -104,19 +163,23 @@ export function CatalogPage() {
 
   function limpiarFiltros() {
     setSearchParams({});
+    setTempMin("");
+    setTempMax("");
   }
 
   const hayFiltrosActivos = Boolean(categoria || ubicacion || precio_min || precio_max);
 
+  // Filtrar sugerencias de departamentos en base al texto escrito
+  const departamentosFiltrados = DEPARTAMENTOS_DETALLADOS.filter((d) => {
+    if (!ubicacion) return true;
+    return (
+      d.nombre.toLowerCase().includes(ubicacion.toLowerCase()) ||
+      d.region.toLowerCase().includes(ubicacion.toLowerCase())
+    );
+  });
+
   return (
     <div className="space-y-6">
-      {/* DATALIST DE DEPARTAMENTOS */}
-      <datalist id="departamentos-colombia">
-        {DEPARTAMENTOS_COLOMBIA.map((dep) => (
-          <option key={dep} value={dep} />
-        ))}
-      </datalist>
-
       {/* HERO LIMPIO Y EQUILIBRADO */}
       <section className="-mx-4 bg-primary px-4 py-10 text-primary-ink sm:-mx-6 sm:px-6 sm:py-14 sm:rounded-3xl shadow-sm">
         <div className="mx-auto max-w-3xl text-center">
@@ -152,26 +215,42 @@ export function CatalogPage() {
         </div>
       </section>
 
-      {/* BARRA DE FILTROS DINÁMICA, MODERNA Y PROFESIONAL */}
-      <div className="rounded-2xl border border-line bg-surface p-4 shadow-sm transition-all space-y-3">
+      {/* BARRA DE FILTROS TOTALMENTE PERSONALIZADA Y PROFESIONAL */}
+      <div className="rounded-2xl border border-line bg-surface p-3.5 sm:p-4 shadow-sm transition-all space-y-3">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex flex-1 flex-wrap items-center gap-3">
-            {/* INPUT DE UBICACIÓN (TIPO LOCALIZACIÓN) */}
-            <div className="group relative min-w-[220px] flex-1 sm:max-w-xs">
-              <div className="relative flex items-center rounded-xl border border-line bg-surface-2/40 transition-colors focus-within:border-primary focus-within:bg-surface focus-within:ring-2 focus-within:ring-primary/15">
-                <IconLocation className="ml-3 h-4 w-4 shrink-0 text-muted transition-colors group-focus-within:text-primary" />
+            {/* 1. INPUT DE UBICACIÓN CON AUTOCOMPLETADO PERSONALIZADO (NO NATIVO) */}
+            <div ref={ubicacionRef} className="relative min-w-[220px] flex-1 sm:max-w-xs">
+              <div
+                className={`relative flex items-center rounded-xl border bg-surface-2/40 transition-all ${
+                  ubicacionMenuAbierto
+                    ? "border-primary bg-surface ring-2 ring-primary/20 shadow-sm"
+                    : "border-line hover:border-line-hover hover:bg-surface-2/60"
+                }`}
+              >
+                <IconLocation
+                  className={`ml-3 h-4 w-4 shrink-0 transition-colors ${
+                    ubicacion ? "text-primary" : "text-muted"
+                  }`}
+                />
                 <input
                   type="text"
-                  list="departamentos-colombia"
                   placeholder="Ubicación (ej: Casanare, Meta...)"
                   value={ubicacion || ""}
-                  onChange={(e) => actualizar("ubicacion", e.target.value)}
+                  onFocus={() => setUbicacionMenuAbierto(true)}
+                  onChange={(e) => {
+                    actualizar("ubicacion", e.target.value);
+                    if (!ubicacionMenuAbierto) setUbicacionMenuAbierto(true);
+                  }}
                   className="w-full bg-transparent py-2 pl-2.5 pr-8 text-sm text-ink placeholder:text-muted/70 focus:outline-none"
                 />
                 {ubicacion && (
                   <button
                     type="button"
-                    onClick={() => actualizar("ubicacion", "")}
+                    onClick={() => {
+                      actualizar("ubicacion", "");
+                      setUbicacionMenuAbierto(false);
+                    }}
                     className="absolute right-2.5 flex h-5 w-5 items-center justify-center rounded-full text-muted hover:bg-line/60 hover:text-ink transition-colors cursor-pointer"
                     title="Borrar ubicación"
                   >
@@ -179,66 +258,192 @@ export function CatalogPage() {
                   </button>
                 )}
               </div>
+
+              {/* POPUP FLOTANTE DE SUGERENCIAS GEOGRÁFICAS */}
+              {ubicacionMenuAbierto && (
+                <div className="absolute top-full left-0 z-50 mt-1.5 w-full sm:w-80 rounded-2xl border border-line bg-surface/98 backdrop-blur-md p-1.5 shadow-lifted animate-in fade-in slide-in-from-top-1">
+                  <div className="px-2.5 py-1.5 border-b border-line/60 flex items-center justify-between text-[11px] font-semibold text-muted">
+                    <span>📍 Regiones y departamentos</span>
+                    <span>{departamentosFiltrados.length} disponibles</span>
+                  </div>
+
+                  <div className="max-h-60 overflow-y-auto py-1 scrollbar-thin">
+                    {departamentosFiltrados.length === 0 ? (
+                      <div className="px-3 py-4 text-center text-xs text-muted">
+                        No se encontró "{ubicacion}". Presiona Enter para buscar por este texto libre.
+                      </div>
+                    ) : (
+                      departamentosFiltrados.map((dep) => (
+                        <button
+                          key={dep.nombre}
+                          type="button"
+                          onClick={() => {
+                            actualizar("ubicacion", dep.nombre);
+                            setUbicacionMenuAbierto(false);
+                          }}
+                          className={`w-full flex flex-col text-left px-3 py-2 rounded-xl text-xs transition-colors cursor-pointer ${
+                            ubicacion?.toLowerCase() === dep.nombre.toLowerCase()
+                              ? "bg-primary/10 text-primary font-bold"
+                              : "hover:bg-surface-2 text-ink"
+                          }`}
+                        >
+                          <div className="flex items-center justify-between">
+                            <span className="font-semibold text-sm">{dep.nombre}</span>
+                            {ubicacion?.toLowerCase() === dep.nombre.toLowerCase() && (
+                              <span className="text-[10px] text-primary">Seleccionado</span>
+                            )}
+                          </div>
+                          <span className="text-[11px] text-muted opacity-80">{dep.region}</span>
+                        </button>
+                      ))
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
 
-            {/* INPUTS DE RANGO DE PRECIO (TIPO MONEDA CON ADORNOS Y GRUPO INTEGRADO) */}
-            <div className="flex flex-wrap items-center gap-1.5">
-              <div className="flex items-center rounded-xl border border-line bg-surface-2/40 p-0.5 focus-within:border-primary focus-within:bg-surface focus-within:ring-2 focus-within:ring-primary/15 transition-all">
-                {/* PRECIO MÍNIMO */}
-                <div className="relative flex items-center">
-                  <span className="pl-2.5 text-xs font-bold text-muted select-none">$</span>
-                  <input
-                    type="number"
-                    min="0"
-                    step="50000"
-                    inputMode="numeric"
-                    placeholder="Precio mín."
-                    value={precio_min || ""}
-                    onChange={(e) => actualizar("precio_min", e.target.value)}
-                    className="w-24 sm:w-28 bg-transparent py-1.5 pl-1 pr-6 text-sm text-ink placeholder:text-muted/70 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                  />
-                  {precio_min && (
+            {/* 2. POPOVER DINÁMICO DE RANGO DE PRECIO ($ COP) */}
+            <div ref={precioRef} className="relative">
+              <button
+                type="button"
+                onClick={() => setPrecioMenuAbierto(!precioMenuAbierto)}
+                className={`flex items-center gap-2 rounded-xl border px-3.5 py-2 text-sm font-semibold transition-all cursor-pointer ${
+                  precio_min || precio_max
+                    ? "border-primary bg-primary/10 text-primary ring-2 ring-primary/15"
+                    : "border-line bg-surface-2/40 hover:bg-surface-2 hover:border-line-hover text-ink"
+                }`}
+              >
+                <span className="text-muted font-bold text-xs">$</span>
+                <span className="text-xs sm:text-sm">
+                  {precio_min && precio_max
+                    ? `${formatearPrecio(precio_min)} — ${formatearPrecio(precio_max)}`
+                    : precio_min
+                    ? `Desde ${formatearPrecio(precio_min)}`
+                    : precio_max
+                    ? `Hasta ${formatearPrecio(precio_max)}`
+                    : "Rango de precio"}
+                </span>
+                <IconChevronDown className="h-3.5 w-3.5 opacity-60 ml-0.5" />
+              </button>
+
+              {/* MODAL / TARJETA FLOTANTE DE SELECCIÓN DE PRECIO */}
+              {precioMenuAbierto && (
+                <div className="absolute top-full left-0 z-50 mt-1.5 w-80 sm:w-88 rounded-2xl border border-line bg-surface/98 backdrop-blur-md p-4 shadow-lifted animate-in fade-in slide-in-from-top-1 space-y-3.5">
+                  <div className="flex items-center justify-between border-b border-line/60 pb-2">
+                    <span className="font-display text-xs font-bold text-ink">
+                      Rango de precio ($ COP)
+                    </span>
+                    {(tempMin || tempMax) && (
+                      <button
+                        type="button"
+                        onClick={limpiarRangoPrecio}
+                        className="text-[11px] font-semibold text-danger hover:underline cursor-pointer"
+                      >
+                        Restablecer
+                      </button>
+                    )}
+                  </div>
+
+                  {/* CAMPOS NUMÉRICOS DE MONEDA CON PREFIJO */}
+                  <div className="grid grid-cols-2 gap-2.5">
+                    <div>
+                      <label className="block text-[11px] font-semibold text-muted mb-1">
+                        Precio mínimo
+                      </label>
+                      <div className="flex items-center rounded-xl border border-line bg-surface-2/50 px-2.5 py-1.5 focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20">
+                        <span className="text-xs font-bold text-muted mr-1.5">$</span>
+                        <input
+                          type="number"
+                          min="0"
+                          step="50000"
+                          placeholder="0"
+                          value={tempMin}
+                          onChange={(e) => setTempMin(e.target.value)}
+                          className="w-full bg-transparent text-xs font-semibold text-ink placeholder:text-muted/60 focus:outline-none"
+                        />
+                      </div>
+                      {tempMin && (
+                        <p className="mt-0.5 text-[10px] text-muted truncate">
+                          {formatearPrecio(tempMin)}
+                        </p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-semibold text-muted mb-1">
+                        Precio máximo
+                      </label>
+                      <div className="flex items-center rounded-xl border border-line bg-surface-2/50 px-2.5 py-1.5 focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20">
+                        <span className="text-xs font-bold text-muted mr-1.5">$</span>
+                        <input
+                          type="number"
+                          min="0"
+                          step="50000"
+                          placeholder="Sin límite"
+                          value={tempMax}
+                          onChange={(e) => setTempMax(e.target.value)}
+                          className="w-full bg-transparent text-xs font-semibold text-ink placeholder:text-muted/60 focus:outline-none"
+                        />
+                      </div>
+                      {tempMax && (
+                        <p className="mt-0.5 text-[10px] text-muted truncate">
+                          {formatearPrecio(tempMax)}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* PRESETS RÁPIDOS */}
+                  <div className="space-y-1.5">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-muted">
+                      Rangos sugeridos
+                    </span>
+                    <div className="grid grid-cols-2 gap-1.5">
+                      {PRESETS_PRECIO.map((preset) => {
+                        const activo = tempMin === preset.min && tempMax === preset.max;
+                        return (
+                          <button
+                            key={preset.label}
+                            type="button"
+                            onClick={() => {
+                              setTempMin(preset.min);
+                              setTempMax(preset.max);
+                            }}
+                            className={`rounded-xl border py-1.5 px-2 text-xs font-medium text-center transition-all cursor-pointer ${
+                              activo
+                                ? "border-primary bg-primary text-primary-ink font-semibold shadow-2xs"
+                                : "border-line bg-surface-2/40 hover:bg-surface-2 text-muted hover:text-ink"
+                            }`}
+                          >
+                            {preset.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* BOTÓN DE APLICAR */}
+                  <div className="flex items-center gap-2 pt-2 border-t border-line/60">
                     <button
                       type="button"
-                      onClick={() => actualizar("precio_min", "")}
-                      className="absolute right-1 text-muted hover:text-ink cursor-pointer"
-                      title="Borrar mínimo"
+                      onClick={() => setPrecioMenuAbierto(false)}
+                      className="flex-1 rounded-xl border border-line py-1.5 text-xs font-semibold text-muted hover:bg-surface-2 transition-colors cursor-pointer"
                     >
-                      <IconClose className="h-3 w-3" />
+                      Cancelar
                     </button>
-                  )}
-                </div>
-
-                <span className="px-1 text-xs font-bold text-muted select-none">—</span>
-
-                {/* PRECIO MÁXIMO */}
-                <div className="relative flex items-center">
-                  <span className="pl-1.5 text-xs font-bold text-muted select-none">$</span>
-                  <input
-                    type="number"
-                    min="0"
-                    step="50000"
-                    inputMode="numeric"
-                    placeholder="Precio máx."
-                    value={precio_max || ""}
-                    onChange={(e) => actualizar("precio_max", e.target.value)}
-                    className="w-24 sm:w-28 bg-transparent py-1.5 pl-1 pr-6 text-sm text-ink placeholder:text-muted/70 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                  />
-                  {precio_max && (
                     <button
                       type="button"
-                      onClick={() => actualizar("precio_max", "")}
-                      className="absolute right-1 text-muted hover:text-ink cursor-pointer"
-                      title="Borrar máximo"
+                      onClick={aplicarRangoPrecioManual}
+                      className="flex-1 rounded-xl bg-primary py-1.5 text-xs font-semibold text-primary-ink hover:brightness-105 transition-all shadow-2xs cursor-pointer"
                     >
-                      <IconClose className="h-3 w-3" />
+                      Aplicar rango
                     </button>
-                  )}
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
 
-            {/* PRESETS RÁPIDOS DE PRECIO */}
+            {/* PRESETS RÁPIDOS EN TOOLBAR (DESKTOP) */}
             <div className="hidden sm:flex items-center gap-1.5">
               {PRESETS_PRECIO.map((preset) => {
                 const activo =
@@ -248,9 +453,9 @@ export function CatalogPage() {
                     key={preset.label}
                     type="button"
                     onClick={() => aplicarPresetPrecio(preset.min, preset.max)}
-                    className={`rounded-lg border px-2.5 py-1 text-xs font-medium transition-colors cursor-pointer ${
+                    className={`rounded-xl border px-2.5 py-1.5 text-xs font-medium transition-all cursor-pointer ${
                       activo
-                        ? "border-primary bg-primary text-primary-ink shadow-2xs"
+                        ? "border-primary bg-primary text-primary-ink shadow-2xs font-semibold"
                         : "border-line bg-surface hover:bg-surface-2 text-muted hover:text-ink"
                     }`}
                   >
@@ -261,7 +466,7 @@ export function CatalogPage() {
             </div>
           </div>
 
-          {/* CONTADOR DE RESULTADOS CON DOT DINÁMICO */}
+          {/* CONTADOR DE RESULTADOS CON STATUS INDICATOR */}
           <div className="flex items-center justify-between lg:justify-end gap-3 pt-2 lg:pt-0 border-t lg:border-t-0 border-line/60">
             <span className="inline-flex items-center gap-2 rounded-full border border-line bg-surface-2/60 px-3.5 py-1.5 text-xs font-semibold text-ink shadow-2xs">
               <span
@@ -319,10 +524,7 @@ export function CatalogPage() {
                   : `Hasta ${formatearPrecio(precio_max!)}`}
                 <button
                   type="button"
-                  onClick={() => {
-                    actualizar("precio_min", "");
-                    actualizar("precio_max", "");
-                  }}
+                  onClick={limpiarRangoPrecio}
                   className="rounded-full p-0.5 hover:bg-accent/25 cursor-pointer"
                   title="Quitar rango de precio"
                 >
