@@ -21,19 +21,18 @@ export function LoginPage() {
       await login(email, password);
       navigate("/");
     } catch {
-      setError("Email o contraseña incorrectos. Verifica tus credenciales.");
+      setError("Email o contraseña incorrectos.");
     } finally {
       setCargando(false);
     }
   }
 
   return (
-    <AuthLayout titulo="Inicia sesión" subtitulo="Ingresa tus credenciales para acceder a tu cuenta.">
-      <form onSubmit={handleSubmit} className="space-y-1">
+    <AuthLayout titulo="Inicia sesión" subtitulo="Accede a tu cuenta de AgroMarket.">
+      <form onSubmit={handleSubmit}>
         <Input
-          etiqueta="Correo Electrónico"
+          etiqueta="Email"
           type="email"
-          placeholder="ejemplo@finca.co"
           required
           value={email}
           onChange={(e) => setEmail(e.target.value)}
@@ -41,33 +40,24 @@ export function LoginPage() {
         <Input
           etiqueta="Contraseña"
           type="password"
-          placeholder="••••••••"
           required
           value={password}
           onChange={(e) => setPassword(e.target.value)}
         />
 
-        {error && (
-          <div className="mb-4 rounded-xl border border-danger/30 bg-danger/10 p-3 text-xs font-medium text-danger animate-fade-in">
-            ⚠️ {error}
-          </div>
-        )}
+        {error && <p className="mb-4 text-xs font-medium text-danger">{error}</p>}
 
-        <Button
-          type="submit"
-          disabled={cargando}
-          className="mt-2 w-full rounded-xl py-3 font-bold shadow-soft transition-all active:scale-[0.99] cursor-pointer"
-        >
-          {cargando ? "Iniciando sesión..." : "Ingresar a mi cuenta"}
+        <Button type="submit" disabled={cargando} className="w-full">
+          {cargando ? "Ingresando..." : "Ingresar"}
         </Button>
       </form>
 
-      <div className="mt-8 border-t border-line/70 pt-5 text-center text-sm text-muted">
-        ¿Aún no tienes cuenta?{" "}
-        <Link to="/registro" className="font-bold text-primary hover:underline underline-offset-4">
-          Regístrate gratis aquí
+      <p className="mt-5 text-center text-xs text-muted">
+        ¿No tienes cuenta?{" "}
+        <Link to="/registro" className="font-semibold text-primary hover:underline">
+          Regístrate
         </Link>
-      </div>
+      </p>
     </AuthLayout>
   );
 }
